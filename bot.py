@@ -1,7 +1,6 @@
 import logging
 import re
 import os
-
 from telegram import Update, ForceReply
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, ConversationHandler
 import psycopg2
