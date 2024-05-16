@@ -309,7 +309,7 @@ def save_emails(update: Update, context):
                 emails = context.user_data.get('emails', [])
                 # Insert each email address into the database if it doesn't already exist
                 for email in emails:
-                    cursor.execute("INSERT IGNORE INTO emails (email) VALUES (%s);", (email,))
+                    cursor.execute("INSERT INTO emails (email) VALUES (%s);", (email,))
                 connection.commit()
                 update.message.reply_text('Email-адреса успешно сохранены в базе данных.')
             except (Exception, Error) as error:
@@ -372,7 +372,7 @@ def save_phone_numbers(update: Update, context):
                 phone_numbers = context.user_data.get('phone_numbers', [])
                 # Insert each phone number into the database if it doesn't already exist
                 for number in phone_numbers:
-                    cursor.execute("INSERT IGNORE INTO phone_numbers (phone_number) VALUES (%s);", (number, ))
+                    cursor.execute("INSERT INTO phone_numbers (phone_number) VALUES (%s);", (number, ))
                 connection.commit()
                 update.message.reply_text('Телефонные номера успешно сохранены в базе данных.')
             except (Exception, Error) as error:
