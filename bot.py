@@ -11,16 +11,17 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Получение значений переменных окружения
-HOST = os.getenv("HOST")
-PORT = int(os.getenv("PORT"))
-USER = os.getenv("USER")
-PASSWORD = os.getenv("PASSWORD")
+RM_HOST = os.getenv("RM_HOST")
+PORT = int(os.getenv("RM_PORT"))
+USER = os.getenv("RM_USER")
+PASSWORD = os.getenv("RM_PASSWORD")
 
 # Получение значений переменных окружения для БД.
+DB_HOST = os.getenv("DB_HOST")
 DB_USER = os.getenv("DB_USER")
-DB_PASS = os.getenv("DB_PASS")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_PORT = os.getenv("DB_PORT")
-DATABASE = os.getenv("DATABASE")
+DATABASE = os.getenv("DB_DATABASE")
 
 TOKEN = str(os.getenv("TOKEN"))
 
@@ -49,7 +50,7 @@ def ssh_command(command):
 
     try:
         # Подключение к удаленному серверу
-        client.connect(hostname=HOST, username=USER, password=PASSWORD, port=PORT)
+        client.connect(hostname=RM_HOST, username=USER, password=PASSWORD, port=PORT)
 
         # Выполнение команды на удаленном сервере
         stdin, stdout, stderr = client.exec_command(command)
@@ -71,8 +72,8 @@ def get_data_from_database(update: Update, context, query):
     try:
         # Устанавливаем соединение с базой данных
         with psycopg2.connect(user=DB_USER,
-                              password=DB_PASS,
-                              host=HOST,
+                              password=DB_PASSWORD,
+                              host=DB_HOST,
                               port=DB_PORT,
                               database=DATABASE) as connection:
             with connection.cursor() as cursor:
@@ -114,6 +115,7 @@ def get_repl_logs(update: Update, context):
         update.message.reply_text(repl_logs_info[:4096])
     else:
         update.message.reply_text(repl_logs_info)
+
 
 def get_release(update: Update, context):
     release_info = ssh_command("lsb_release -a")
@@ -245,12 +247,13 @@ def verify_password(update: Update, context):
     
     return ConversationHandler.END
 
+
 def connect_to_database():
     try:
         connection = psycopg2.connect(
             user=DB_USER,
-            password=DB_PASS,
-            host=HOST,
+            password=DB_PASSWORD,
+            host=DB_HOST,
             port=DB_PORT,
             database=DATABASE
         )
@@ -263,12 +266,6 @@ def findEmailCommand(update: Update, context):
     update.message.reply_text('Введите текст для поиска Email-адреса')
 
     return 'findEmail'
-
-
-def findPhoneNumbersCommand(update: Update, context):
-    update.message.reply_text('Введите текст для поиска телефонных номеров: ')
-
-    return 'findPhoneNumbers'
 
 def findEmail(update: Update, context):
     user_input = update.message.text
@@ -294,7 +291,6 @@ def findEmail(update: Update, context):
 
     # Move to the next state to handle user's response
     return 'save_emails'
-
 
 def save_emails(update: Update, context):
     user_input = update.message.text.lower()
@@ -326,6 +322,11 @@ def save_emails(update: Update, context):
     return ConversationHandler.END
 
 
+def findPhoneNumbersCommand(update: Update, context):
+    update.message.reply_text('Введите текст для поиска телефонных номеров: ')
+
+    return 'findPhoneNumbers'
+
 def findPhoneNumbers(update: Update, context):
     user_input = update.message.text
     phoneNumRegex = re.compile(r'(?:\+7|8)[ -]?\(?\d{3}\)?[ -]?\d{3}[ -]?\d{2}[ -]?\d{2}')
@@ -350,7 +351,6 @@ def findPhoneNumbers(update: Update, context):
 
     # Move to the next state to handle user's response
     return 'save_phone_numbers'
-
 
 def save_phone_numbers(update: Update, context):
     user_input = update.message.text.lower()
@@ -380,7 +380,6 @@ def save_phone_numbers(update: Update, context):
         update.message.reply_text('Телефонные номера не будут сохранены в базе данных.')
 
     return ConversationHandler.END
-
 
 
 def echo(update: Update, context):
