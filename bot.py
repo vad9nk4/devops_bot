@@ -108,7 +108,7 @@ def get_repl_logs(update: Update, context):
     update.message.reply_text("Ищу логи о репликации...")
     
     # Вызываем функцию ssh_command для выполнения команды на удаленном сервере
-    repl_logs_info = ssh_command("cat /var/log/postgresql/postgresql-14-main.log | grep repl")
+    repl_logs_info = ssh_command("sudo cat /var/log/postgresql/postgresql-14-main.log | grep repl")
     
     # Отправляем найденные логи в сообщении
     if len(repl_logs_info) > 4096:
