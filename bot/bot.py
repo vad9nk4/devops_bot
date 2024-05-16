@@ -281,36 +281,40 @@ def findEmail(update: Update, context):
         update.message.reply_text('Email-адреса не были найдены')
         return ConversationHandler.END
 
+    # Filter out duplicate email addresses
+    unique_emails = list(set(emailList))
+
     emails = ''
-    for i, email in enumerate(emailList):
+    for i, email in enumerate(unique_emails):
         emails += f'{i+1}. {email}\n'
 
     update.message.reply_text(emails)
 
-    # Save each email address individually
-    for email in emailList:
+    # Save each unique email address individually
+    for email in unique_emails:
         context.user_data.setdefault('emails', []).append(email)
 
     # Ask user if they want to save the found email addresses
     update.message.reply_text('Хотите сохранить найденные email-адреса в базе данных? Ответьте "Да" или "Нет".')
-
+    
     # Move to the next state to handle user's response
     return 'save_emails'
+
 
 def save_emails(update: Update, context):
     user_input = update.message.text.lower()
 
     # Check if user wants to save the found email addresses
-    if user_input == 'Да' or user_input == 'да':
+    if user_input == 'да':
         connection = connect_to_database()
         if connection:
             try:
                 cursor = connection.cursor()
                 # Get the found email addresses
                 emails = context.user_data.get('emails', [])
-                # Insert each email address into the database
+                # Insert each email address into the database if it doesn't already exist
                 for email in emails:
-                    cursor.execute("INSERT INTO emails (email) VALUES (%s);", (email,))
+                    cursor.execute("INSERT IGNORE INTO emails (email) VALUES (%s);", (email,))
                 connection.commit()
                 update.message.reply_text('Email-адреса успешно сохранены в базе данных.')
             except (Exception, Error) as error:
@@ -341,36 +345,39 @@ def findPhoneNumbers(update: Update, context):
         update.message.reply_text('Телефонные номера не найдены')
         return ConversationHandler.END
 
+    # Filter out duplicate phone numbers
+    unique_phone_numbers = list(set(phoneNumberList))
+
     phone_numbers = ''
-    for i, number in enumerate(phoneNumberList):
+    for i, number in enumerate(unique_phone_numbers):
         phone_numbers += f'{i+1}. {number}\n'
 
     update.message.reply_text(phone_numbers)
 
-    # Save each phone number individually
-    for number in phoneNumberList:
+    # Save each unique phone number individually
+    for number in unique_phone_numbers:
         context.user_data.setdefault('phone_numbers', []).append(number)
 
     # Ask user if they want to save the found phone numbers
     update.message.reply_text('Хотите сохранить найденные телефонные номера в базе данных? Ответьте "Да" или "Нет".')
-
     # Move to the next state to handle user's response
     return 'save_phone_numbers'
+
 
 def save_phone_numbers(update: Update, context):
     user_input = update.message.text.lower()
 
     # Check if user wants to save the found phone numbers
-    if user_input == 'Да' or user_input == 'да':
+    if user_input == 'да':
         connection = connect_to_database()
         if connection:
             try:
                 cursor = connection.cursor()
                 # Get the found phone numbers
                 phone_numbers = context.user_data.get('phone_numbers', [])
-                # Insert each phone number into the database
+                # Insert each phone number into the database if it doesn't already exist
                 for number in phone_numbers:
-                    cursor.execute("INSERT INTO phone_numbers (phone_number) VALUES (%s);", (number, ))
+                    cursor.execute("INSERT IGNORE INTO phone_numbers (phone_number) VALUES (%s);", (number, ))
                 connection.commit()
                 update.message.reply_text('Телефонные номера успешно сохранены в базе данных.')
             except (Exception, Error) as error:
