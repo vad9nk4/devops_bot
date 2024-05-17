@@ -269,13 +269,10 @@ def connect_to_database():
 
 def findEmailCommand(update: Update, context):
     update.message.reply_text('Введите текст для поиска Email-адреса')
-
     return 'findEmail'
-
 
 def findPhoneNumbersCommand(update: Update, context):
     update.message.reply_text('Введите текст для поиска телефонных номеров: ')
-
     return 'findPhoneNumbers'
 
 def findEmail(update: Update, context):
@@ -287,37 +284,36 @@ def findEmail(update: Update, context):
         update.message.reply_text('Email-адреса не были найдены')
         return ConversationHandler.END
 
+    unique_emails = list(set(emailList))  # Remove duplicates
     emails = ''
-    for i, email in enumerate(emailList):
+    for i, email in enumerate(unique_emails):
         emails += f'{i+1}. {email}\n'
 
     update.message.reply_text(emails)
 
-    # Save each email address individually
-    for email in emailList:
-        context.user_data.setdefault('emails', []).append(email)
+    # Save unique email addresses
+    context.user_data['emails'] = unique_emails
 
     # Ask user if they want to save the found email addresses
     update.message.reply_text('Хотите сохранить найденные email-адреса в базе данных? Ответьте "Да" или "Нет".')
-
-    # Move to the next state to handle user's response
     return 'save_emails'
-
 
 def save_emails(update: Update, context):
     user_input = update.message.text.lower()
 
-    # Check if user wants to save the found email addresses
-    if user_input == 'Да' or user_input == 'да':
+    if user_input in ['да', 'yes', 'y']:
         connection = connect_to_database()
         if connection:
             try:
                 cursor = connection.cursor()
-                # Get the found email addresses
                 emails = context.user_data.get('emails', [])
-                # Insert each email address into the database
+
                 for email in emails:
-                    cursor.execute("INSERT INTO emails (email) VALUES (%s);", (email,))
+                    # Check if email already exists
+                    cursor.execute("SELECT 1 FROM emails WHERE email = %s;", (email,))
+                    if not cursor.fetchone():
+                        cursor.execute("INSERT INTO emails (email) VALUES (%s);", (email,))
+                
                 connection.commit()
                 update.message.reply_text('Email-адреса успешно сохранены в базе данных.')
             except (Exception, Error) as error:
@@ -333,7 +329,6 @@ def save_emails(update: Update, context):
 
     return ConversationHandler.END
 
-
 def findPhoneNumbers(update: Update, context):
     user_input = update.message.text
     phoneNumRegex = re.compile(r'(?:\+7|8)[ -]?\(?\d{3}\)?[ -]?\d{3}[ -]?\d{2}[ -]?\d{2}')
@@ -343,42 +338,41 @@ def findPhoneNumbers(update: Update, context):
         update.message.reply_text('Телефонные номера не найдены')
         return ConversationHandler.END
 
+    unique_phone_numbers = list(set(phoneNumberList))  # Remove duplicates
     phone_numbers = ''
-    for i, number in enumerate(phoneNumberList):
+    for i, number in enumerate(unique_phone_numbers):
         phone_numbers += f'{i+1}. {number}\n'
 
     update.message.reply_text(phone_numbers)
 
-    # Save each phone number individually
-    for number in phoneNumberList:
-        context.user_data.setdefault('phone_numbers', []).append(number)
+    # Save unique phone numbers
+    context.user_data['phone_numbers'] = unique_phone_numbers
 
     # Ask user if they want to save the found phone numbers
     update.message.reply_text('Хотите сохранить найденные телефонные номера в базе данных? Ответьте "Да" или "Нет".')
-
-    # Move to the next state to handle user's response
     return 'save_phone_numbers'
-
 
 def save_phone_numbers(update: Update, context):
     user_input = update.message.text.lower()
 
-    # Check if user wants to save the found phone numbers
-    if user_input == 'Да' or user_input == 'да':
+    if user_input in ['да', 'yes', 'y']:
         connection = connect_to_database()
         if connection:
             try:
                 cursor = connection.cursor()
-                # Get the found phone numbers
                 phone_numbers = context.user_data.get('phone_numbers', [])
-                # Insert each phone number into the database
+
                 for number in phone_numbers:
-                    cursor.execute("INSERT INTO phone_numbers (phone_number) VALUES (%s);", (number, ))
+                    # Check if phone number already exists
+                    cursor.execute("SELECT 1 FROM phone_numbers WHERE phone_number = %s;", (number,))
+                    if not cursor.fetchone():
+                        cursor.execute("INSERT INTO phone_numbers (phone_number) VALUES (%s);", (number,))
+                
                 connection.commit()
                 update.message.reply_text('Телефонные номера успешно сохранены в базе данных.')
             except (Exception, Error) as error:
                 logger.error(f"Error while inserting phone numbers into the database: {error}")
-                update.message.reply_text('Произошла ошибка при сохранении телефонных номеров в базе данных.')
+                update.message.reply_text('Произошла ошибка при сохранении телефонных номеров в базу данных.')
             finally:
                 cursor.close()
                 connection.close()
@@ -388,7 +382,6 @@ def save_phone_numbers(update: Update, context):
         update.message.reply_text('Телефонные номера не будут сохранены в базе данных.')
 
     return ConversationHandler.END
-
 
 
 def echo(update: Update, context):
