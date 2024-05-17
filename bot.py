@@ -291,7 +291,6 @@ def findEmail(update: Update, context):
 
     # Ask user if they want to save the found email addresses
     update.message.reply_text('Хотите сохранить найденные email-адреса в базе данных? Ответьте "Да" или "Нет".')
-
     return 'save_emails'
 
 def save_emails(update: Update, context):
@@ -304,12 +303,12 @@ def save_emails(update: Update, context):
                 cursor = connection.cursor()
                 emails = context.user_data.get('emails', [])
 
-                # Use INSERT ... ON CONFLICT DO NOTHING to avoid duplicates
                 for email in emails:
-                    cursor.execute("""
-                        INSERT INTO emails (email) VALUES (%s)
-                        ON CONFLICT (email) DO NOTHING;
-                    """, (email,))
+                    # Check if email already exists
+                    cursor.execute("SELECT 1 FROM emails WHERE email = %s;", (email,))
+                    if not cursor.fetchone():
+                        cursor.execute("INSERT INTO emails (email) VALUES (%s);", (email,))
+                
                 connection.commit()
                 update.message.reply_text('Email-адреса успешно сохранены в базе данных.')
             except (Exception, Error) as error:
@@ -346,7 +345,6 @@ def findPhoneNumbers(update: Update, context):
 
     # Ask user if they want to save the found phone numbers
     update.message.reply_text('Хотите сохранить найденные телефонные номера в базе данных? Ответьте "Да" или "Нет".')
-
     return 'save_phone_numbers'
 
 def save_phone_numbers(update: Update, context):
@@ -359,12 +357,12 @@ def save_phone_numbers(update: Update, context):
                 cursor = connection.cursor()
                 phone_numbers = context.user_data.get('phone_numbers', [])
 
-                # Use INSERT ... ON CONFLICT DO NOTHING to avoid duplicates
                 for number in phone_numbers:
-                    cursor.execute("""
-                        INSERT INTO phone_numbers (phone_number) VALUES (%s)
-                        ON CONFLICT (phone_number) DO NOTHING;
-                    """, (number,))
+                    # Check if phone number already exists
+                    cursor.execute("SELECT 1 FROM phone_numbers WHERE phone_number = %s;", (number,))
+                    if not cursor.fetchone():
+                        cursor.execute("INSERT INTO phone_numbers (phone_number) VALUES (%s);", (number,))
+                
                 connection.commit()
                 update.message.reply_text('Телефонные номера успешно сохранены в базе данных.')
             except (Exception, Error) as error:
