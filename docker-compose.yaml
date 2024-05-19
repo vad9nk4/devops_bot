@@ -24,13 +24,11 @@ services:
         DB_REPL_PASSWORD: ${DB_REPL_PASSWORD}
         DB_DATABASE: ${DB_DATABASE}
         DB_PORT: ${DB_PORT}
-    restart: unless-stopped  # Поведение перезапуска контейнера
     environment:  # Переменные окружения для контейнера PostgreSQL
       POSTGRES_USER: ${DB_USER}  # Пользователь
       POSTGRES_PASSWORD: ${DB_PASSWORD}  # Пароль
       POSTGRES_DB: ${DB_DATABASE}  # Имя базы данных
-      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256\nhost replication all 11.0.0.0/0 md5"  # Метод аутентификации для хоста
-      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"  # Аргументы инициализации базы данных
+      POSTGRES_HOST_AUTH_METHOD: "scram-sha-256\nhost all all 0.0.0.0/0 password\nhost replication ${DB_REPL_USER} 0.0.0.0/0 md5"
     env_file:  # Файл .env для загрузки переменных окружения
       - .env
     volumes:
@@ -52,7 +50,6 @@ services:
         DB_REPL_PASSWORD: ${DB_REPL_PASSWORD}
         DB_PORT: ${DB_PORT}
         DB_HOST: ${DB_HOST}
-    restart: unless-stopped  # Поведение перезапуска контейнера
     environment:  # Переменные окружения для контейнера реплицирующей базы данных
       POSTGRES_PASSWORD: ${DB_PASSWORD}  # Пароль
       POSTGRES_USER: ${DB_USER}  # Пользователь
@@ -72,7 +69,6 @@ services:
     build:  # Определение способа сборки образа бота
       context: ./bot  # Путь к директории с исходными файлами бота
       dockerfile: Dockerfile  # Путь к Dockerfile для сборки образа
-    restart: unless-stopped  # Поведение перезапуска контейнера
     environment:  # Переменные окружения для контейнера бота
       TOKEN: ${TOKEN}  # Токен для работы бота
       HOST: ${RM_HOST}  # Хост для подключения к базе данных
