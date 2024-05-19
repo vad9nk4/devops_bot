@@ -41,7 +41,9 @@ RUN echo "listen_addresses = '*'" >> /usr/share/postgresql/postgresql.conf.sampl
     && echo "log_replication_commands=on" >> /usr/share/postgresql/postgresql.conf.sample
 
 # Обновляем конфигурацию pg_hba.conf
-RUN echo "host replication all 11.0.0.0/24 md5" >> /var/lib/postgresql/data/pg_hba.conf
+RUN echo "host replication all 11.0.0.0/24 md5" >> /var/lib/postgresql/data/pg_hba.conf \
+    && echo "host all all 11.0.0.0/24 md5" >> /var/lib/postgresql/data/pg_hba.conf
+
 
 # Открываем порт для PostgreSQL
 EXPOSE $DB_PORT
