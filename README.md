@@ -1,2 +1,2 @@
 # devops_bot
-PT_Start
+Telegram bot for monitoring Linux Systems and working with PostgreDB
