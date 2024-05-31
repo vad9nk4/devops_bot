@@ -1,5 +1,4 @@
 # devops_bot
-PT_Start
 
 secrets.yml must be specified!!! (look example)\
 version of postgresql: postgresql-14\
